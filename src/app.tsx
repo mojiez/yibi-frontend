@@ -7,21 +7,23 @@ import type { RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
+import {getLoginUserUsingGet} from "@/services/yibi/userController";
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
+// 获取整个前端项目的一个全局的存储
+// getInitialState返回的是一个Promise对象，里面有一个key是currentUser
 export async function getInitialState(): Promise<{
-  settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
-  loading?: boolean;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  // 获取当前登陆的用户信息 VO是用于直接展示的信息
+  currentUser?: API.LoginUserVO;
 }> {
+  // 定义了一个函数 获取当前登陆的用户信息，如果没有，则跳转到登陆页面
   const fetchUserInfo = async () => {
     try {
-      const msg = await queryCurrentUser({
+      const msg = await getLoginUserUsingGet({
         skipErrorHandler: true,
       });
       return msg.data;
@@ -30,19 +32,17 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
-  // 如果不是登录页面，执行
   const { location } = history;
+  // 如果现在不是登陆页面
   if (location.pathname !== loginPath) {
+    // 执行上面定义的函数，如果没登陆就跳转到登陆页面，如果登陆了就把值返回
     const currentUser = await fetchUserInfo();
     return {
-      fetchUserInfo,
       currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
     };
   }
+  //
   return {
-    fetchUserInfo,
-    settings: defaultSettings as Partial<LayoutSettings>,
   };
 }
 
@@ -51,7 +51,7 @@ export const layout: ({initialState, setInitialState}: { initialState: any; setI
   return {
     actionsRender: () => [<Question key="doc" />],
     avatarProps: {
-      src: initialState?.currentUser?.avatar,
+      src: initialState?.currentUser?.userAvatar,
       title: <AvatarName />,
       render: (_, avatarChildren) => {
         return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
@@ -132,5 +132,6 @@ export const layout: ({initialState, setInitialState}: { initialState: any; setI
  */
 export const request = {
   baseURL: "http://localhost:8101",
+  withCredentials: true,
   ...errorConfig,
 };
