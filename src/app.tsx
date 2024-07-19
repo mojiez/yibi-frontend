@@ -37,6 +37,9 @@ export async function getInitialState(): Promise<{
   if (location.pathname !== loginPath) {
     // 执行上面定义的函数，如果没登陆就跳转到登陆页面，如果登陆了就把值返回
     const currentUser = await fetchUserInfo();
+    // 引用本身是常量 所指的内容是可以改变的
+    // antDesignPro里面组件对于身份的key是access 而不是userRole 这里要转换一下
+    currentUser.access = currentUser.userRole;
     return {
       currentUser,
     };
