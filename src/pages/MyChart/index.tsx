@@ -1,6 +1,6 @@
 import { listMyChartVoByPageUsingPost } from '@/services/yibi/chartController';
 import { useModel } from '@umijs/max';
-import { Avatar, Card, List, message } from 'antd';
+import {Avatar, Card, List, message, Result} from 'antd';
 import Search from 'antd/es/input/Search';
 import ReactECharts from 'echarts-for-react';
 import React, { useEffect, useState } from 'react';
@@ -15,6 +15,10 @@ const MyChart: React.FC = () => {
     // 初始情况下返回每页12条数据
     pageSize: 4,
     current: 1,
+    // 按创建时间排序
+    sortField: 'createTime',
+    // 降序
+    sortOrder: 'desc',
   };
   // 定义发送给后端的查询条件
   const [searchParams, setSearchParams] = useState<API.ChartQueryRequest>({ ...initSearchParams });
@@ -101,12 +105,51 @@ const MyChart: React.FC = () => {
           <List.Item key={item.id}>
             <Card>
               <List.Item.Meta
+                // 用户信息 头像之类已经知道的先展示出来
                 avatar={<Avatar src={currentUser && currentUser.userAvatar} />}
                 title={item.name}
-                description={item.genResult}
+                description={item.chartType ? '图表类型 ' + item.chartType : undefined}
               />
-              {item.chartType}
-              {<ReactECharts option={JSON.parse(item.genChart)} />}
+              {
+                item.status === 'failed' &&
+                <>
+                  <Result
+                    status="error"
+                    title="图表生成失败"
+                    subTitle={item.execMessage}
+                  >
+                  </Result>
+                </>
+              }
+              {
+                item.status === 'running' &&
+                <>
+                  <Result
+                    status="warning"
+                    title="正在分析图表数据"
+                    subTitle={item.execMessage}
+                  >
+                  </Result>
+                </>
+              }
+              {
+                item.status === 'wait' &&
+                <>
+                  <Result
+                    status="info"
+                    title="等待数据处理"
+                    subTitle={item.execMessage}
+                  >
+                  </Result>
+                </>
+              }
+              {
+                item.status === 'succeed' &&
+              <>
+                {item.genResult}
+                {<ReactECharts option={JSON.parse(item.genChart)} />}
+              </>
+              }
             </Card>
           </List.Item>
         )}

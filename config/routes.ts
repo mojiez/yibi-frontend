@@ -6,6 +6,7 @@ export default [
   },
   { path: '/welcome', name: '欢迎', icon: 'smile', component: './Welcome' },
   { path: '/add_chart', name: '添加图表页', icon: 'smile', component: './AddChart' },
+  { path: '/add_chart_async', name: '异步添加图表页', icon: 'smile', component: './AddChartAsync' },
   { path: '/my_chart', name: '我的图表', icon: 'smile', component: './MyChart' },
   {
     path: '/admin',
